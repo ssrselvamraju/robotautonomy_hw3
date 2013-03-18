@@ -278,6 +278,36 @@ class RoboHandler:
     return dists[min_ind], min_ind
 
 
+###################################################
+#  Collision Check
+###################################################
+  def check_collision(self, DOFs):
+
+    dof_limits = self.robot.GetActiveDOFLimits()
+    lower_limit = dof_limits[0]
+    upper_limit = dof_limits[1]
+#    print np.shape(lower_limit)
+    with self.env:
+        self.robot.SetActiveDOFValues(DOFs)
+        end_limits = (lower_limit<DOFs).all() and (upper_limit>DOFs).all()
+        
+        if not end_limits:
+            return True
+#        print end_limits
+#        print collision1, DOFs
+     
+        collision1 = self.env.CheckCollision(self.robot)
+        if collision1:
+            return True
+        
+        collision2 = self.robot.CheckSelfCollision()
+        #self.robot.SetActiveDOFValues(current_DOFs)
+    return collision2
+
+
+
+
+
   #######################################################
   # minimum distance from configs (plural) to any other config in o_configs
   # distance metric: euclidean
