@@ -209,7 +209,7 @@ class RoboHandler:
 #
 #    goal_dofs = np.array([])
 #    for grasp, graspindices in zip(validgrasps, validindices):
-#      Tgoal = self.gmodel.getGlobalGraspTransform(grasp, collisionfree=True)
+#      Tgoal = self.gmodel.getGlobalGraspTransform(grasp, free=True)
 #      sols = self.manip.FindIKSolutions(Tgoal, openravepy.IkFilterOptions.CheckEnvCollisions)
 #
 #      # magic that makes sols only the unique elements - sometimes there are multiple IKs
@@ -303,11 +303,23 @@ class RoboHandler:
         collision2 = self.robot.CheckSelfCollision()
         #self.robot.SetActiveDOFValues(current_DOFs)
     return collision2
+#####################################################
 
+#        extend function for rrt
 
-
-
-
+####################################################
+def extend(q_near, q_target)
+    q_add = q_target - q_near
+    add_wt = np.linalg.norm(q_add)*0.1  
+    q_ext = q_near + q_add*add_wt
+    
+    self.robot.SetActiveDOFValues(q_ext)
+    
+    if self.robot.check_collision(self.robot.GetActiveDOFs())
+        return NULL
+    else
+        return q_ext
+    
   #######################################################
   # minimum distance from configs (plural) to any other config in o_configs
   # distance metric: euclidean
