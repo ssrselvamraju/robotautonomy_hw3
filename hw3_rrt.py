@@ -260,20 +260,16 @@ class RoboHandler:
 #    return trajectory
     
 #########algo for RRT main ends####SSR    
-    
-    
-    
-    
-    
-    
-    return None
-
-
-
-
-
-
-
+ 
+  q_near=self.robot.GetActiveDOFValues()
+  while(((abs(q_nearest-goals))<MAX_MOVE_AMOUNT).all()):
+      q_target = self.targetSampler(graph, goals)
+      q_extend = self.extend(q_near, q_target)
+      if q_extend != 0:
+            graph.append(q_extend)
+  traj = #traverse  
+  trajectory = points_to_traj(traj)    
+  return trajectory
 
 ##################################################
 #RRT expanded
