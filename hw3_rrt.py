@@ -261,15 +261,18 @@ class RoboHandler:
     
 #########algo for RRT main ends####SSR    
  
-  q_near=self.robot.GetActiveDOFValues()
-  while(((abs(q_nearest-goals))<MAX_MOVE_AMOUNT).all()):
-      q_target = self.targetSampler(graph, goals)
-      q_extend = self.extend(q_near, q_target)
-      if q_extend != 0:
-            graph.append(q_extend)
-  traj = #traverse  
-  trajectory = points_to_traj(traj)    
-  return trajectory
+    graph = dict()
+    q_init = self.robot.GetActiveDOFValues()
+    q_nearest = q_init
+    while(((abs(q_nearest-goals))<MAX_MOVE_AMOUNT).all()):
+        q_target = self.targetSampler(graph, goals)
+        q_extend = self.extend(q_nearest, q_target)
+        if q_extend:
+            graph{q_nearest} = q_extend
+        q_nearest = q_extend    
+    traj = traverse(graph, q_extend, q_init )  
+    trajectory = points_to_traj(traj)    
+    return trajectory
 
 ##################################################
 #RRT expanded
@@ -286,9 +289,18 @@ def targetSampler(self, graph, goals):
           return tgt
     
 #################################################
-
-
-
+  def traverse(graph, start, end, path=[]):
+        path = path + [start]
+        if start == end:
+            return path
+        if not graph.has_key(start):
+            return None
+        for node in graph[start]:
+            if node not in path:
+                newpath = find_path(graph, node, end, path)
+                if newpath: return newpath
+        return None
+        
   #######################################################
   # Convert to and from numpy array to a hashable function
   #######################################################
