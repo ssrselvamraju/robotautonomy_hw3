@@ -9,6 +9,7 @@ import time
 import math
 import numpy as np
 np.random.seed(0)
+import random
 import scipy
 
 import collections
@@ -243,7 +244,53 @@ class RoboHandler:
   # RETURN: a trajectory to the goal
   #######################################################
   def rrt_to_goal(self, goals):
+
+##################################algo for rrt#######SSR    
+    #initialize graph
+#    q_nearest=q_init
+#    while(((abs(q_nearest-goals))<MAX_MOVE_AMOUNT).all()):
+#        q_target = chooseTargetFunction()
+#        q_near = findNearestNodeFunction(Graph,q_target)
+#        q_extend = extndQfunction(q_near, q_target)
+#        if q_extend != 0:
+#            Graph.append(nearest,extend)
+#    traverse from last q_nearest (which invalidates while) to q_init
+#    append to trajectory
+#    
+#    return trajectory
+    
+#########algo for RRT main ends####SSR    
+    
+    
+    
+    
+    
+    
     return None
+
+
+
+
+
+
+
+
+##################################################
+#RRT expanded
+
+def targetSampler(self, graph, goals):
+  rand_sampler_flag = random.random()
+  if rand_sampler_flag < 0.3:
+    return goals[random.randrange[0,np.shape(goals)[0]]]
+  else:
+    while True:
+      tgt =  np.random.rand(7)
+      if tgt not in graph:  ##define graph in main function as self.graph or pass graph to this function
+        if self.check_collision(tgt) != True:             #does collision check and end limits check (basically checks if tgt is in free space)
+          return tgt
+    
+#################################################
+
 
 
   #######################################################
