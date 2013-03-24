@@ -54,7 +54,7 @@ class RoboHandler:
     self.openrave_init()
     self.problem_init()
 
-    #self.run_problem_rrt()
+    self.run_problem_rrt()
  
 
 
@@ -195,7 +195,20 @@ class RoboHandler:
     self.robot.WaitForController(0)
     self.taskmanip.CloseFingers()
 
-
+  def traverse(graph, start, end, path=[]):
+        path = path + [start]
+        if start == end:
+            return path
+        if not graph.has_key(start):
+            return None
+        for node in graph[start]:
+            if node not in path:
+                newpath = find_path(graph, node, end, path)
+                if newpath: 
+		    return newpath
+        return None
+        
+ 
 
   #######################################################
   # finds the arm configurations (in cspace) that correspond
@@ -263,45 +276,50 @@ class RoboHandler:
  
     graph = dict()
     q_init = self.robot.GetActiveDOFValues()
-    q_nearest = q_init
-    while(((abs(q_nearest-goals))<MAX_MOVE_AMOUNT).all()):
-        q_target = self.targetSampler(graph, goals)
-        q_extend = self.extend(q_nearest, q_target)
-        if q_extend:
-            graph{q_nearest} = q_extend
-        q_nearest = q_extend    
-    traj = traverse(graph, q_extend, q_init )  
-    trajectory = points_to_traj(traj)    
-    return trajectory
+    q_extend = q_init
+    graph[self.convert_for_dict(q_extend)] = None 
 
+    while(((abs(q_extend-goals))>MAX_MOVE_AMOUNT).any()):
+
+        q_target = self.targetSampler(graph, goals)
+        q_nearest = self.closest_point(graph, q_target)   
+        q_extend = self.extend(graph,q_nearest, q_target)
+        
+	if q_extend is not None:
+            graph[self.convert_for_dict(q_extend)] = q_nearest
+	else: 
+	    q_extend = np.array([0,0,0,0,0,0,0])
+
+    traj = self.traverse(graph, q_extend, q_init)  
+    trajectory = self.points_to_traj(traj)    
+    return trajectory
+##################################################
+
+
+##################################################
+#RRT Closest point
+
+  def closest_point(self, graph, q_target):
+	dist = np.sum(np.abs(list(graph.keys()) - q_target)**2,axis=-1)**(0.5)
+	index = np.argmin(dist)
+	return list(graph.keys())[index]	
+	
 ##################################################
 #RRT expanded
 
-def targetSampler(self, graph, goals):
-  rand_sampler_flag = random.random()
-  if rand_sampler_flag < 0.3:
-    return goals[random.randrange[0,np.shape(goals)[0]]]
-  else:
-    while True:
-      tgt =  np.random.rand(7)
-      if tgt not in graph:  ##define graph in main function as self.graph or pass graph to this function
-        if self.check_collision(tgt) != True:             #does collision check and end limits check (basically checks if tgt is in free space)
-          return tgt
+  def targetSampler(self, graph, goals):
+    rand_sampler_flag = random.random()
+    if (rand_sampler_flag < 0.3):
+      return goals[random.randrange(0,np.shape(goals)[0])]
+    else:
+      while True:
+        tgt =  np.random.rand(7)
+        if not graph.has_key(self.convert_for_dict(tgt)):  ##define graph in main function as self.graph or pass graph to this function
+          if self.check_collision(tgt) != True: #does collision check and end limits check (basically checks if tgt is in free space)
+            return tgt
     
 #################################################
-  def traverse(graph, start, end, path=[]):
-        path = path + [start]
-        if start == end:
-            return path
-        if not graph.has_key(start):
-            return None
-        for node in graph[start]:
-            if node not in path:
-                newpath = find_path(graph, node, end, path)
-                if newpath: return newpath
-        return None
-        
-  #######################################################
+ #######################################################
   # Convert to and from numpy array to a hashable function
   #######################################################
   def convert_for_dict(self, item):
@@ -363,16 +381,16 @@ def targetSampler(self, graph, goals):
 #        extend function for rrt
 
 ####################################################
-def extend(q_near, q_target)
+  def extend(self,graph, q_near, q_target):
     q_add = q_target - q_near
     add_wt = np.linalg.norm(q_add)*0.1  
     q_ext = q_near + q_add*add_wt
     
     self.robot.SetActiveDOFValues(q_ext)
     
-    if self.robot.check_collision(self.robot.GetActiveDOFs())
-        return NULL
-    else
+    if (self.check_collision(self.robot.GetActiveDOFValues()) or graph.has_key(self.convert_for_dict(q_ext))):
+        return None
+    else:
         return q_ext
     
   #######################################################
@@ -395,7 +413,7 @@ def extend(q_near, q_target)
   #######################################################
   # close the fingers when you get to the grasp position
   #######################################################
-  def close_fingers(self):
+def close_fingers(self):
     self.taskmanip.CloseFingers()
     self.robot.WaitForController(0) #ensures the robot isn't moving anymore
     #self.robot.Grab(target) #attaches object to robot, so moving the robot will move the object now
