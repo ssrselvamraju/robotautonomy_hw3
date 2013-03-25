@@ -3,6 +3,7 @@
 PACKAGE_NAME = 'hw3'
 
 # Standard Python Imports
+import sys
 import os
 import copy
 import time
@@ -187,12 +188,14 @@ class RoboHandler:
 
     # get the trajectory!
     traj = self.rrt_to_goal(goals)
+    
 
     with self.env:
       self.robot.SetActiveDOFValues([5.459, -0.981,  -1.113,  1.473 , -1.124, -1.332,  1.856])
     
     self.robot.GetController().SetPath(traj)
     self.robot.WaitForController(0)
+    time.sleep(20)
     self.taskmanip.CloseFingers()
 
   def traverse(graph, start, end, path=[]):
@@ -247,7 +250,13 @@ class RoboHandler:
 #
 #    return goal_dofs
 
-
+  def check_if_goal(self,q_ext,goals):
+	nearness = (abs(q_ext-goals) < MAX_MOVE_AMOUNT)
+	for item in nearness:
+		if (item.all()):
+			return True
+		else:
+			return False
 
   #TODO
   #######################################################
@@ -258,40 +267,30 @@ class RoboHandler:
   #######################################################
   def rrt_to_goal(self, goals):
 
-##################################algo for rrt#######SSR    
-    #initialize graph
-#    q_nearest=q_init
-#    while(((abs(q_nearest-goals))<MAX_MOVE_AMOUNT).all()):
-#        q_target = chooseTargetFunction()
-#        q_near = findNearestNodeFunction(Graph,q_target)
-#        q_extend = extndQfunction(q_near, q_target)
-#        if q_extend != 0:
-#            Graph.append(nearest,extend)
-#    traverse from last q_nearest (which invalidates while) to q_init
-#    append to trajectory
-#    
-#    return trajectory
-    
-#########algo for RRT main ends####SSR    
- 
     graph = dict()
     q_init = self.robot.GetActiveDOFValues()
     q_extend = q_init
     graph[self.convert_for_dict(q_extend)] = None 
-
-    while(((abs(q_extend-goals))>MAX_MOVE_AMOUNT).any()):
+    while(not(self.check_if_goal(q_extend,goals))):
 
         q_target = self.targetSampler(graph, goals)
         q_nearest = self.closest_point(graph, q_target)   
         q_extend = self.extend(graph,q_nearest, q_target)
-        
 	if q_extend is not None:
             graph[self.convert_for_dict(q_extend)] = q_nearest
 	else: 
 	    q_extend = np.array([0,0,0,0,0,0,0])
 
-    traj = self.traverse(graph, q_extend, q_init)  
-    trajectory = self.points_to_traj(traj)    
+    print graph
+#    traj = self.traverse(graph, q_extend, q_init) 
+    traj = []
+    parent = self.convert_for_dict(q_extend)
+    while parent is not None:  	
+         traj.append(parent)
+	 node = parent
+	 parent = graph[node]
+     
+    trajectory = self.points_to_traj(traj[::-1])    
     return trajectory
 ##################################################
 
@@ -309,7 +308,7 @@ class RoboHandler:
 
   def targetSampler(self, graph, goals):
     rand_sampler_flag = random.random()
-    if (rand_sampler_flag < 0.3):
+    if (rand_sampler_flag):
       return goals[random.randrange(0,np.shape(goals)[0])]
     else:
       while True:
@@ -323,11 +322,11 @@ class RoboHandler:
   # Convert to and from numpy array to a hashable function
   #######################################################
   def convert_for_dict(self, item):
-    #return tuple(np.int_(item*100))
+#    return tuple(np.int_(item*100))
     return tuple(item)
 
   def convert_from_dictkey(self, item):
-    #return np.array(item)/100.
+#    return np.array(item)/100.
     return np.array(item)
 
 
@@ -383,15 +382,17 @@ class RoboHandler:
 ####################################################
   def extend(self,graph, q_near, q_target):
     q_add = q_target - q_near
-    add_wt = np.linalg.norm(q_add)*0.1  
+    add_wt = 0.1/np.linalg.norm(q_add)  
     q_ext = q_near + q_add*add_wt
-    
     self.robot.SetActiveDOFValues(q_ext)
     
-    if (self.check_collision(self.robot.GetActiveDOFValues()) or graph.has_key(self.convert_for_dict(q_ext))):
+#    if (not(self.check_collision(q_ext)) or 
+    if (self.env.CheckCollision(self.robot) or graph.has_key(self.convert_for_dict(q_ext))):
         return None
     else:
+	
         return q_ext
+	
     
   #######################################################
   # minimum distance from configs (plural) to any other config in o_configs
