@@ -277,8 +277,6 @@ class RoboHandler:
         q_target = self.targetSampler(graph, goals)
         q_nearest = self.closest_point(graph, q_target)   
         q_extend,goal_flag = self.extend(graph,q_nearest, q_target,goals)
-        print q_extend
-	print goal_flag
 #	if q_extend is not None:
 #           graph[self.convert_for_dict(q_extend)] = q_nearest
 #	else: 
@@ -295,6 +293,7 @@ class RoboHandler:
      
     trajectory = self.points_to_traj(traj[::-1])    
     return trajectory
+##################################################
 
 
 ##################################################
@@ -309,8 +308,31 @@ class RoboHandler:
 #RRT expanded
 
   def targetSampler(self, graph, goals):
+#    rand_sampler_flag = random.random()
+#    if (rand_sampler_flag < 0.1):
+#      return goals[random.randrange(0,np.shape(goals)[0])]
+#    else:
+#      while True:
+#        tgt =  np.random.rand(7)
+#        if not graph.has_key(self.convert_for_dict(tgt)):  ##define graph in main function as self.graph or pass graph to this function
+ #         if self.check_collision(tgt) != True: #does collision check and end limits check (basically checks if tgt is in free space)
+#            return tgt
     rand_sampler_flag = random.random()
+<<<<<<< HEAD
     if (rand_sampler_flag<0.2):
+      return goals[random.randrange(0,np.shape(goals)[0])]
+    else:
+      while True:
+        rand = np.random.rand(7)
+        dof_limits = self.robot.GetActiveDOFLimits()
+        lower_limit = dof_limits[0]
+        upper_limit = dof_limits[1]
+        tgt = lower_limit + ((upper_limit-lower_limit)*rand) #since this line has been added try commenting off the self.check_collision(tgt) > might speed up the code
+#        if not graph.has_key(self.convert_for_dict(tgt)): ##define graph in main function as self.graph or pass graph to this function
+#          if self.check_collision(tgt) != True: #does collision check and end limits check (basically checks if tgt is in free space)
+        return tgt    
+=======
+    if (rand_sampler_flag<0.3):
       return goals[random.randrange(0,np.shape(goals)[0])]
     else:
       while True:
@@ -323,6 +345,7 @@ class RoboHandler:
           if self.check_collision(tgt) != True: #does collision check and end limits check (basically checks if tgt is in free space)
             return tgt
     
+>>>>>>> e316207f6f06b79f60b6127d61d4ac35a54b2dc6
 #################################################
  #######################################################
   # Convert to and from numpy array to a hashable function
@@ -402,6 +425,9 @@ class RoboHandler:
 	q_ext = q_near+q_add*add_wt
         goal_flag = self.check_if_goal(q_near,goals)
 
+#    while(not goal_flag):
+#        with self.env:
+#	self.robot.SetActiveDOFValues(q_ext)
     return q_near,goal_flag	
     
   #######################################################
