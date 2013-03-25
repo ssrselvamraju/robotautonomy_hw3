@@ -278,12 +278,12 @@ class RoboHandler:
         q_nearest = self.closest_point(graph, q_target)   
         q_extend,goal_flag = self.extend(graph,q_nearest, q_target,goals)
         print q_extend
-	print goal_flag
+        print goal_flag
 #	if q_extend is not None:
 #           graph[self.convert_for_dict(q_extend)] = q_nearest
 #	else: 
 #	    q_extend = np.array([0,0,0,0,0,0,0])
-
+    print "Exited while"
     print graph
 #    traj = self.traverse(graph, q_extend, q_init) 
     traj = []
@@ -310,7 +310,7 @@ class RoboHandler:
 
   def targetSampler(self, graph, goals):
     rand_sampler_flag = random.random()
-    if (rand_sampler_flag<0.2):
+    if (rand_sampler_flag<0.5):
       return goals[random.randrange(0,np.shape(goals)[0])]
     else:
       while True:
@@ -392,14 +392,14 @@ class RoboHandler:
     q_add = q_target - q_near
     add_wt = 0.1/np.linalg.norm(q_add)      
     q_ext = q_near + q_add*add_wt
-    
+    goal_flag = False
 #    if (not(self.check_collision(q_ext)) or 
     
-    while (not self.check_collision(q_ext) or (not goal_flag)):
+    while (not self.check_collision(q_ext) and (not goal_flag)):
         if (not graph.has_key(self.convert_for_dict(q_ext))):
             graph[self.convert_for_dict(q_ext)] = q_near
-	q_near = q_ext
-	q_ext = q_near+q_add*add_wt
+	    q_near = q_ext
+	    q_ext = q_near+q_add*add_wt
         goal_flag = self.check_if_goal(q_near,goals)
 
     return q_near,goal_flag	
