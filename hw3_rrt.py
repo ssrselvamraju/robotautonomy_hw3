@@ -308,11 +308,15 @@ class RoboHandler:
 
   def targetSampler(self, graph, goals):
     rand_sampler_flag = random.random()
-    if (rand_sampler_flag):
+    if (rand_sampler_flag<0.3):
       return goals[random.randrange(0,np.shape(goals)[0])]
     else:
       while True:
-        tgt =  np.random.rand(7)
+        rand =  np.random.rand(7)
+        dof_limits = self.robot.GetActiveDOFLimits()
+        lower_limit = dof_limits[0]
+        upper_limit = dof_limits[1]
+        tgt = lower_limit + ((upper_limit-lower_limit)*rand)  #since this line has been added try commenting off the self.check_collision(tgt) > might speed up the code
         if not graph.has_key(self.convert_for_dict(tgt)):  ##define graph in main function as self.graph or pass graph to this function
           if self.check_collision(tgt) != True: #does collision check and end limits check (basically checks if tgt is in free space)
             return tgt
@@ -350,6 +354,7 @@ class RoboHandler:
     return dists[min_ind], min_ind
 
 
+
 ###################################################
 #  Collision Check
 ###################################################
@@ -358,6 +363,7 @@ class RoboHandler:
     dof_limits = self.robot.GetActiveDOFLimits()
     lower_limit = dof_limits[0]
     upper_limit = dof_limits[1]
+    
 #    print np.shape(lower_limit)
     with self.env:
         self.robot.SetActiveDOFValues(DOFs)
