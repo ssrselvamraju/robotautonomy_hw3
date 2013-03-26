@@ -9,8 +9,9 @@ import copy
 import time
 import math
 import numpy as np
-np.random.seed(0)
+np.random.seed(10)
 import random
+random.seed(10)
 import scipy
 
 import collections
@@ -197,19 +198,6 @@ class RoboHandler:
     time.sleep(1)
     self.taskmanip.CloseFingers()
 #    time.sleep(20)
-
-#  def traverse(graph, start, end, path=[]):
-#        path = path + [start]
-#        if start == end:
-#            return path
-#        if not graph.has_key(start):
-#            return None
-#        for node in graph[start]:
-#            if node not in path:
-#                newpath = find_path(graph, node, end, path)
-#                if newpath: 
-#		    return newpath
-#        return None
         
  
 
@@ -455,7 +443,7 @@ def close_fingers(self):
 
 
 if __name__ == '__main__':
-  time.sleep(5)
+#  time.sleep(5)
   robo = RoboHandler()
   time.sleep(10000) #to keep the openrave window open
   
