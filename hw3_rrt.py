@@ -192,24 +192,24 @@ class RoboHandler:
 
     with self.env:
       self.robot.SetActiveDOFValues([5.459, -0.981,  -1.113,  1.473 , -1.124, -1.332,  1.856])
-    
     self.robot.GetController().SetPath(traj)
     self.robot.WaitForController(0)
-    time.sleep(20)
+    time.sleep(1)
     self.taskmanip.CloseFingers()
+#    time.sleep(20)
 
-  def traverse(graph, start, end, path=[]):
-        path = path + [start]
-        if start == end:
-            return path
-        if not graph.has_key(start):
-            return None
-        for node in graph[start]:
-            if node not in path:
-                newpath = find_path(graph, node, end, path)
-                if newpath: 
-		    return newpath
-        return None
+#  def traverse(graph, start, end, path=[]):
+#        path = path + [start]
+#        if start == end:
+#            return path
+#        if not graph.has_key(start):
+#            return None
+#        for node in graph[start]:
+#            if node not in path:
+#                newpath = find_path(graph, node, end, path)
+#                if newpath: 
+#		    return newpath
+#        return None
         
  
 
@@ -250,13 +250,34 @@ class RoboHandler:
 #
 #    return goal_dofs
 
+#  def check_if_goal(self,q_ext,goals):
+#    nearness = (abs(q_ext-goals) < MAX_MOVE_AMOUNT)
+##    print nearness
+#    for item in nearness:
+##        print item
+#        if (item.all()):
+#            return True
+#    return False    
+        
   def check_if_goal(self,q_ext,goals):
-	nearness = (abs(q_ext-goals) < MAX_MOVE_AMOUNT)
-	for item in nearness:
-		if (item.all()):
-			return True
-		else:
-			return False
+    q_diff = (q_ext - goals)
+#    print q_diff
+    net_diff= np.array([])
+    for item in q_diff:
+        net_diff = np.append(net_diff, np.linalg.norm(item))
+#    print 'net_diff', net_diff
+    nearness = (net_diff < MAX_MOVE_AMOUNT)
+#    print nearness
+#    for item in nearness:
+#        print item
+    if (nearness.any()):
+        return True
+    return False    
+   
+
+
+
+
 
   #TODO
   #######################################################
@@ -277,21 +298,21 @@ class RoboHandler:
         q_target = self.targetSampler(graph, goals)
         q_nearest = self.closest_point(graph, q_target)   
         q_extend,goal_flag = self.extend(graph,q_nearest, q_target,goals)
-        print q_extend
-        print goal_flag
+#        print "yaay", q_extend
+#        print goal_flag
 #	if q_extend is not None:
 #           graph[self.convert_for_dict(q_extend)] = q_nearest
 #	else: 
 #	    q_extend = np.array([0,0,0,0,0,0,0])
-    print "Exited while"
-    print graph
+    print "Yaaay"
+#    print graph
 #    traj = self.traverse(graph, q_extend, q_init) 
     traj = []
     parent = self.convert_for_dict(q_extend)
     while parent is not None:  	
          traj.append(parent)
 	 node = parent
-	 parent = graph[node]
+	 parent = graph[self.convert_for_dict(node)]
      
     trajectory = self.points_to_traj(traj[::-1])    
     return trajectory
@@ -401,7 +422,8 @@ class RoboHandler:
 	    q_near = q_ext
 	    q_ext = q_near+q_add*add_wt
         goal_flag = self.check_if_goal(q_near,goals)
-
+#        print goal_flag
+#        print "q-ext", q_ext
     return q_near,goal_flag	
     
   #######################################################
@@ -433,6 +455,7 @@ def close_fingers(self):
 
 
 if __name__ == '__main__':
+  time.sleep(5)
   robo = RoboHandler()
-  #time.sleep(10000) #to keep the openrave window open
+  time.sleep(10000) #to keep the openrave window open
   
